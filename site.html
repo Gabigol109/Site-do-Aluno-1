@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man Simples em HTML/JS</title>
+    <style>
+        body {
+            background-color: #111;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 { margin: 5px; font-size: 24px; }
+        #score { font-size: 20px; margin-bottom: 10px; color: yellow; }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 1px;
+            background-color: #000;
+            border: 4px solid blue;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #191919;
+        }
+        .wall { background-color: blue; }
+        .pill {
+            width: 8px;
+            height: 8px;
+            background-color: #ffb8ae;
+            border-radius: 50%;
+        }
+        .pacman {
+            width: 22px;
+            height: 22px;
+            background-color: yellow;
+            border-radius: 50%;
+        }
+        .ghost {
+            width: 22px;
+            height: 22px;
+            background-color: red;
+            border-radius: 50% 50% 0 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>PAC-MAN</h1>
+    <div id="score">Pontos: <span id="points">0</span></div>
+    <div id="board"></div>
+
+    <script>
+        const boardElement = document.getElementById('board');
+        const pointsElement = document.getElementById('points');
+
+        // 0: Caminho Vazio, 1: Parede, 2: Pílula
+        const map = [
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,2,2,2,1,2,2,2,2,1],
+            [1,2,1,2,1,2,1,1,2,1],
+            [1,2,1,2,2,2,2,1,2,1],
+            [1,2,1,1,1,1,2,1,2,1],
+            [1,2,2,2,2,2,2,2,2,1],
+            [1,1,1,2,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,1,1,2,1],
+            [1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        let score = 0;
+        let pacman = { x: 1, y: 1 };
+        let ghost = { x: 8, y: 8 };
+
+        function drawBoard() {
+            boardElement.innerHTML = '';
+            for (let r = 0; r < map.length; r++) {
+                for (let c = 0; c < map[r].length; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+
+                    if (map[r][c] === 1) {
+                        cell.classList.add('wall');
+                    } else if (map[r][c] === 2) {
+                        const pill = document.createElement('div');
+                        pill.classList.add('pill');
+                        cell.appendChild(pill);
+                    }
+
+                    if (pacman.x === c && pacman.y === r) {
+                        const p = document.createElement('div');
+                        p.classList.add('pacman');
+                        cell.appendChild(p);
+                    } else if (ghost.x === c && ghost.y === r) {
+                        const g = document.createElement('div');
+                        g.classList.add('ghost');
+                        cell.appendChild(g);
+                    }
+
+                    boardElement.appendChild(cell);
+                }
+            }
+            pointsElement.innerText = score;
+        }
+
+        function movePacman(dx, dy) {
+            let nx = pacman.x + dx;
+            let ny = pacman.y + dy;
+
+            if (map[ny] && map[ny][nx] !== 1) {
+                pacman.x = nx;
+                pacman.y = ny;
+
+                if (map[ny][nx] === 2) {
+                    map[ny][nx] = 0;
+                    score += 10;
+                }
+
+                checkGameOver();
+                drawBoard();
+            }
+        }
+
+        function moveGhost() {
+            const directions = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
+            const dir = directions[Math.floor(Math.random() * directions.length)];
+            let nx = ghost.x + dir.x;
+            let ny = ghost.y + dir.y;
+
+            if (map[ny] && map[ny][nx] !== 1) {
+                ghost.x = nx;
+                ghost.y = ny;
+            }
+            checkGameOver();
+            drawBoard();
+        }
+
+        function checkGameOver() {
+            if (pacman.x === ghost.x && pacman.y === ghost.y) {
+                alert('Fim de jogo! Você foi pego.');
+                pacman = { x: 1, y: 1 };
+                ghost = { x: 8, y: 8 };
+                score = 0;
+            }
+        }
+
+        window.addEventListener('keydown', e => {
+            switch (e.key) {
+                case 'ArrowUp': movePacman(0, -1); break;
+                case 'ArrowDown': movePacman(0, 1); break;
+                case 'ArrowLeft': movePacman(-1, 0); break;
+                case 'ArrowRight': movePacman(1, 0); break;
+            }
+        });
+
+        setInterval(moveGhost, 600);
+        drawBoard();
+    </script>
+</body>
+</html>
